@@ -23,7 +23,7 @@ export default function SentEmails() {
   useEffect(() => {
     const fetchSentEmails = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/sent-emails");
+        const res = await axios.get("https://mail-node-js.onrender.com/sent-emails");
         setEmails(res.data.sentEmails);
       } catch (err) {
         console.error("Failed to fetch sent emails:", err);
