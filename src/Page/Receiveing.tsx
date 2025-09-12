@@ -7,7 +7,7 @@ export default function LoadingGear() {
   <div className="flex items-center justify-center gap-4">
 
     <FontAwesomeIcon icon={faGear} spin size="2x" className="text-blue-600" />
-      <span className="text-3xl font-medium text-white animate-pulse text-blue-600">Receiveing...</span>
+      <span className="text-3xl font-medium animate-pulse text-blue-600">Receiveing...</span>
   
     </div>
     

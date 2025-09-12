@@ -1,23 +1,21 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Img from "../Page/pexels-pixabay-531880.jpg";
 import Loadings from "./Loadings";
-import Receive from "./Receiveing";  
 import Emails from "./Mailimg";
+import Menu from "./Menu";
+import Close from './Close'
 
 export default function Email() {
+  const navigate = useNavigate();
+
   const [to, setTo] = useState("");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
-  const [loading, setLoading] = useState(false);          
-  const [showImportModal, setShowImportModal] = useState(false);
-  const [importFile, setImportFile] = useState<File | null>(null);
-  const [showHistoryModal, setShowHistoryModal] = useState(false);
-  const [historyLoading, setHistoryLoading] = useState(false);
-  const [history, setHistory] = useState<
-    { id: string; from: string; to: string; subject: string; date: string }[]
-  >([]);
+  const [loading, setLoading] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) setAttachments(Array.from(e.target.files));
@@ -48,44 +46,6 @@ export default function Email() {
     }
   };
 
-  const handleSendExcel = async () => {
-    if (!importFile) return alert("Please select an Excel file!");
-    try {
-      setLoading(true);
-      const formData = new FormData();
-      formData.append("excel", importFile);
-
-      const res = await axios.post("http://localhost:5000/send-excel-emails", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      if (res.status === 200) {
-        alert(res.data.message);
-        setImportFile(null);
-        setShowImportModal(false);
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Failed to send Excel emails");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchHistory = async () => {
-    setShowHistoryModal(true);
-    setHistoryLoading(true);
-    try {
-      const res = await axios.get("http://localhost:5000/read-mails");
-      if (res.status === 200) setHistory(res.data.messages);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to fetch email history");
-    } finally {
-      setHistoryLoading(false);
-    }
-  };
-
   return (
     <div
       style={{
@@ -95,20 +55,62 @@ export default function Email() {
         height: "100vh",
         width: "100%",
       }}
-      className="flex items-center justify-center"
+      className="flex items-center justify-center relative overflow-hidden"
     >
+      <button
+        onClick={() => setShowSidebar(true)}
+        className="absolute top-6 left-6 p-3 bg-black bg-opacity-60 rounded-full shadow-xl hover:bg-opacity-80 backdrop-blur-md transition border-2"
+      >
+        <Menu />
+      </button>
+
+      <div
+        className={`fixed top-0 left-0 h-full w-64 bg-black bg-opacity-70 
+                    backdrop-blur-xl text-white z-40 rounded-r-3xl border-r-4 border-yellow-400
+                    transform transition-transform duration-300 ease-in-out
+                    ${showSidebar ? "translate-x-0" : "-translate-x-full"}`}
+      >
+        <div className="p-6 flex flex-col gap-6 relative h-full">
+          <button
+            onClick={() => setShowSidebar(false)}
+            className="absolute top-4 right-4 text-yellow-400 text-2xl hover:scale-110 transition"
+            title="Close"
+          >
+            <Close/>
+          </button>
+
+          <button
+  onClick={() => { navigate("/sent-mails"); setShowSidebar(false); }}
+  className="w-full mt-10 bg-gradient-to-r from-purple-500 to-purple-400 text-black px-4 py-3 rounded-xl hover:from-purple-400 hover:to-purple-500 shadow-lg font-semibold"
+>
+  Sent Emails
+</button>
+
+
+          <button
+            onClick={() => { navigate("/history"); setShowSidebar(false); }}
+            className="w-full bg-gradient-to-r from-yellow-500 to-orange-400 text-black px-4 py-3 rounded-xl hover:from-yellow-400 hover:to-yellow-500 shadow-lg font-semibold"
+          >
+            Received
+          </button>
+
+          <button
+            onClick={() => { navigate("/import"); setShowSidebar(false); }}
+            className="w-full bg-gradient-to-r from-green-500 to-emerald-400 px-4 py-3 rounded-xl hover:from-green-400 hover:to-emerald-500 shadow-lg flex items-center justify-center gap-2 font-semibold"
+          >
+              <Emails /> Import Excel
+          </button>
+
+          
+        </div>
+      </div>
+
       {loading ? (
         <Loadings />
       ) : (
-        <div className="w-[350px] max-w-[90%] h-[500px] mx-auto border rounded-2xl shadow-2xl bg-black bg-opacity-70 text-white backdrop-blur-md flex flex-col justify-between">
-          <div className="flex justify-between items-center px-5 py-3 border-b border-gray-700 rounded-t-2xl">
-            <span className="font-semibold text-lg">Compose Email</span>
-            <button
-              onClick={fetchHistory}
-              className="bg-yellow-500 text-black px-3 py-2 rounded-lg hover:bg-yellow-600 shadow-lg"
-            >
-              History
-            </button>
+        <div className="w-[380px] max-w-[90%] h-[520px] mx-auto rounded-3xl shadow-2xl bg-black bg-opacity-70 text-white backdrop-blur-md flex flex-col justify-between">
+          <div className="flex justify-between items-center px-5 py-4 border-b border-gray-400 rounded-t-3xl">
+            <span className="font-semibold text-lg tracking-wide">Compose Email</span>
           </div>
 
           <div className="p-5 space-y-6 overflow-y-auto">
@@ -118,7 +120,7 @@ export default function Email() {
                 type="email"
                 value={to}
                 onChange={(e) => setTo(e.target.value)}
-                className="w-full px-3 py-2 bg-transparent border-2 border-gray-500 rounded-xl outline-none text-sm focus:border-blue-400"
+                className="w-full px-3 py-2 bg-transparent border-2 border-gray-500 rounded-xl outline-none text-sm focus:border-blue-500"
               />
             </div>
 
@@ -128,7 +130,7 @@ export default function Email() {
                 type="text"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                className="w-full px-3 py-2 bg-transparent border-2 border-gray-500 rounded-xl outline-none text-sm focus:border-blue-400"
+                className="w-full px-3 py-2 bg-transparent border-2 border-gray-500 rounded-xl outline-none text-sm focus:border-blue-500"
               />
             </div>
 
@@ -137,7 +139,7 @@ export default function Email() {
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                className="w-full px-3 py-2 h-28 bg-transparent border-2 border-gray-500 rounded-xl outline-none text-sm resize-none focus:border-blue-400"
+                className="w-full px-3 py-2 h-28 bg-transparent border-2 border-gray-500 rounded-xl outline-none text-sm resize-none focus:border-blue-500"
               />
             </div>
 
@@ -147,15 +149,12 @@ export default function Email() {
                 type="file"
                 multiple
                 onChange={handleFileChange}
-                className="
-                  block w-full text-sm text-white
+                className="block w-full text-sm text-white
                   file:mr-4 file:py-2 file:px-4
                   file:rounded-md file:border-0
                   file:text-sm file:font-semibold
-                  file:bg-blue-700 file:text-white
-                  hover:file:bg-blue-600
-                  cursor-pointer
-                "
+                  file:bg-blue-600 file:text-white
+                  hover:file:bg-blue-500 cursor-pointer"
               />
               {attachments.length > 0 && (
                 <div className="text-xs text-gray-300 mt-1">
@@ -165,113 +164,13 @@ export default function Email() {
             </div>
           </div>
 
-          <div className="flex justify-between items-center px-5 py-3 border-t border-gray-700 rounded-b-2xl">
+          <div className="flex justify-between items-center px-5 py-3 border-t border-gray-400 rounded-b-3xl">
             <button
               onClick={handleSend}
-              className="px-5 py-2 rounded-lg text-white bg-blue-600 hover:bg-blue-700 shadow-lg"
+              className="px-5 py-2 rounded-lg text-white bg-blue-500 hover:bg-blue-600 shadow-lg font-semibold"
             >
               Send
             </button>
-
-            <button
-              onClick={() => setShowImportModal(true)}
-              className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 flex items-center gap-2 shadow-lg"
-            >
-              <Emails /> Import Excel
-            </button>
-          </div>
-        </div>
-      )}
-
-      {!loading && showImportModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
-          <div className="bg-white w-[300px] rounded-xl shadow-2xl p-6 space-y-4 text-black">
-            <h2 className="text-lg font-semibold border-b border-gray-700 pb-2">
-              Import Excel File
-            </h2>
-            <input
-              type="file"
-              accept=".xlsx,.xls"
-              onChange={(e) => setImportFile(e.target.files ? e.target.files[0] : null)}
-              className="block w-full text-sm text-black file:mr-4 file:py-2 file:px-4
-                         file:rounded-md file:border-0 file:text-sm file:font-semibold
-                         file:bg-blue-700 file:text-white hover:file:bg-blue-600 cursor-pointer"
-            />
-            {importFile && (
-              <p className="text-xs text-black mt-1">
-                Selected: <strong>{importFile.name}</strong>
-              </p>
-            )}
-            <div className="flex justify-end gap-3 pt-3 border-t border-gray-700">
-              <button
-                onClick={() => setShowImportModal(false)}
-                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSendExcel}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-              >
-                Send Emails
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showHistoryModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
-          <div className="bg-gray-900 w-[400px] max-h-[80vh] rounded-xl shadow-2xl p-6 space-y-4 
-          text-white overflow-y-auto border-2">
-            <h2 className="text-2xl font-bold border-b border-gray-700 pb-2 text-yellow-400">
-              Email History
-            </h2>
-
-            {historyLoading ? (
-              <div className="flex justify-center py-8">
-                <Receive />
-              </div>
-            ) : history.length === 0 ? (
-              <p className="text-sm text-gray-400 mt-2">No emails found.</p>
-            ) : (
-              <div className="space-y-4 mt-2">
-                {history.map((mail) => (
-                  <div
-                    key={mail.id}
-                    className="p-3 rounded-lg bg-gradient-to-r from-black via-green-900 to-black shadow-md border-2 border-yellow-400"
-                  >
-                    <p>
-                      <span className="font-semibold text-green-300">From: </span>
-                      <span className="text-white">{mail.from}</span>
-                    </p>
-                    <p>
-                      <span className="font-semibold text-blue-300">To: </span>
-                      <span className="text-white">{mail.to}</span>
-                    </p>
-                    <p>
-                      <span className="font-semibold text-yellow-300">Subject: </span>
-                      <span className="text-white">{mail.subject}</span>
-                    </p>
-                    <p>
-                      <span className="font-semibold text-red-300">Date: </span>
-                      <span className="text-white">
-                        {new Date(mail.date).toLocaleString()}
-                      </span>
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="flex justify-end pt-3 border-t border-gray-700">
-              <button
-                onClick={() => setShowHistoryModal(false)}
-                className="px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-600"
-              >
-                Close
-              </button>
-            </div>
           </div>
         </div>
       )}
