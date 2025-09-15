@@ -6,6 +6,7 @@ import Email from "./Page/Email";
 import ImportPage from "./Page/ImportPage";
 import HistoryPage from "./Page/HistoryPage"; 
 import SendEmails from "./Page/SendEmails";
+import Delta from "./Page/Delta"
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
         <Route path="/import" element={<ImportPage />} />
         <Route path="/history" element={<HistoryPage />} />
         <Route path="/sent-mails" element={<SendEmails />} />
+         <Route path="/delta-mails" element={<Delta/>} />
       </Routes>
     </BrowserRouter>
   );

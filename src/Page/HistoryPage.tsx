@@ -18,13 +18,49 @@ interface Mail {
 export default function HistoryPage() {
   const [history, setHistory] = useState<Mail[]>([]);
   const [loading, setLoading] = useState(true);
+  const [spinning, setSpinning] = useState(false);
   const navigate = useNavigate();
 
+  // Load initial emails
   useEffect(() => {
     const loadInitial = async () => {
-       try {
-      const res = await axios.get("http://localhost:5000/getmails");
+      try {
+        const res = await axios.get("http://localhost:5000/getmails");
+        const newMails: Mail[] = res.data.data.map((m: any) => ({
+          id: m.id,
+          from: m.sender,
+          to: m.receiver,
+          subject: m.subject,
+          date: m.received_at,
+        }));
 
+        const existingIds = new Set(history.map((h) => h.id));
+        const merged = [
+          ...newMails.filter((m) => !existingIds.has(m.id)),
+          ...history,
+        ];
+
+        if (merged.length === history.length) {
+          alert("No new emails since last refresh.");
+        } else {
+          setHistory(merged);
+        }
+      } catch (err) {
+        console.error("Refresh failed:", err);
+        alert("Refresh failed — check server logs");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadInitial();
+  }, []);
+
+  // Refresh handler
+  const handleRefresh = async () => {
+    try {
+      setSpinning(true); // start spinning
+      const res = await axios.get("http://localhost:5000/read-mails");
       const newMails: Mail[] = res.data.data.map((m: any) => ({
         id: m.id,
         from: m.sender,
@@ -32,44 +68,13 @@ export default function HistoryPage() {
         subject: m.subject,
         date: m.received_at,
       }));
-
-      const existingIds = new Set(history.map((h) => h.id));
-      const merged = [
-        ...newMails.filter((m) => !existingIds.has(m.id)),
-        ...history,
-      ];
-
-      if (merged.length === history.length) {
-        alert("No new emails since last refresh.");
-      } else {
-        setHistory(merged);
-      }
+      setHistory(newMails);
     } catch (err) {
-      console.error("Refresh failed:", err);
-      alert("Refresh failed — check server logs");
+      console.error("Fetch history error:", err);
+      alert("Failed to fetch email history");
+    } finally {
+      setSpinning(false); // stop spinning
     }
-       finally {
-        setLoading(false);
-      }
-    };
-    loadInitial();
-  }, []);
-
-  const handleRefresh = async () => {
-    try {
-        const res = await axios.get("http://localhost:5000/read-mails");
-       const newMails: Mail[] = res.data.data.map((m: any) => ({
-        id: m.id,
-        from: m.sender,
-        to: m.receiver,
-        subject: m.subject,
-        date: m.received_at,
-      }));
-        setHistory(newMails);
-      } catch (err) {
-        console.error("Fetch history error:", err);
-        alert("Failed to fetch email history");
-      }
   };
 
   return (
@@ -85,6 +90,7 @@ export default function HistoryPage() {
       }}
       className="text-white p-6"
     >
+      {/* Header */}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-yellow-400">
           <Unseen />
@@ -103,18 +109,19 @@ export default function HistoryPage() {
             className="px-3 py-1 rounded-lg transition"
             title="Refresh emails"
           >
-            <RefreshIcon />
+            <RefreshIcon spinning={spinning} />
           </button>
         </div>
       </div>
 
+      {/* Email List */}
       {loading ? (
         <div className="flex justify-center py-8">
           <Receive />
         </div>
       ) : history.length === 0 ? (
         <p className="mt-8 text-center text-xl text-gray-600">
-         <b> No emails found.</b>
+          <b>No emails found.</b>
         </p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-6">

@@ -94,6 +94,13 @@ export default function Email() {
             Received
           </button>
 
+             <button
+            onClick={() => { navigate("/delta-mails"); setShowSidebar(false); }}
+            className="w-full bg-gradient-to-r from-orange-500 to-red-300 text-black px-4 py-3 rounded-xl hover:from-yellow-400 hover:to-yellow-500 shadow-lg font-semibold"
+          >
+            Delta-mails
+          </button>
+
           <button
             onClick={() => { navigate("/import"); setShowSidebar(false); }}
             className="w-full bg-gradient-to-r from-green-500 to-emerald-400 px-4 py-3 rounded-xl hover:from-green-400 hover:to-emerald-500 shadow-lg flex items-center justify-center gap-2 font-semibold"
