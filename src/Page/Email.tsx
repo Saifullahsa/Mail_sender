@@ -30,7 +30,7 @@ export default function Email() {
       formData.append("message", message);
       attachments.forEach((file) => formData.append("attachments", file));
 
-      const res = await axios.post("http://localhost:5000/send-email", formData, {
+      const res = await axios.post("https://mail-node-js.onrender.com/send-email", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
