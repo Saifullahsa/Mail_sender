@@ -16,7 +16,7 @@ export default function ImportPage() {
       const formData = new FormData();
       formData.append("excel", importFile);
 
-      const res = await axios.post("http://localhost:5000/send-excel-emails", formData, {
+      const res = await axios.post("https://mail-node-js.onrender.com/send-excel-emails", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
