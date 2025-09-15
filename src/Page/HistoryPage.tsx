@@ -25,7 +25,7 @@ export default function HistoryPage() {
   useEffect(() => {
     const loadInitial = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/getmails");
+        const res = await axios.get("https://mail-node-js.onrender.com/getmails");
         const newMails: Mail[] = res.data.data.map((m: any) => ({
           id: m.id,
           from: m.sender,
@@ -60,7 +60,7 @@ export default function HistoryPage() {
   const handleRefresh = async () => {
     try {
       setSpinning(true); // start spinning
-      const res = await axios.get("http://localhost:5000/read-mails");
+      const res = await axios.get("https://mail-node-js.onrender.com/read-mails");
       const newMails: Mail[] = res.data.data.map((m: any) => ({
         id: m.id,
         from: m.sender,
